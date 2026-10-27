@@ -1,0 +1,10 @@
+.employeeDirectory {
+  overflow: hidden;
+  padding: 1rem;
+  color: var(--bodyText, #323130);
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+}
