@@ -1,5 +1,4 @@
 export interface IEmployee {
-  /** SharePoint list item Id */
   id: number;
   empId: string;
   userId: number | undefined;

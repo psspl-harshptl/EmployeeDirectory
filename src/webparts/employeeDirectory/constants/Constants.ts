@@ -1,4 +1,6 @@
+import type { IEmployeeFilters } from '../models/IEmployeeFilters';
 import type { IEmployeeFormData } from '../models/IEmployeeFormData';
+import type { IEmployeeSort } from '../models/IEmployeeSort';
 
 export const LIST_TITLES = {
   Employee: 'Employee',
@@ -36,4 +38,16 @@ export const EMPTY_EMPLOYEE_FORM: IEmployeeFormData = {
   dob: undefined,
   doj: undefined,
   isActive: true
+};
+
+// Also applied when filters/sorting are hidden from the property pane,
+// so the directory always falls back to showing active employees by Employee ID.
+export const DEFAULT_FILTERS: IEmployeeFilters = {
+  department: '',
+  status: 'active'
+};
+
+export const DEFAULT_SORT: IEmployeeSort = {
+  field: 'empId',
+  isDescending: false
 };

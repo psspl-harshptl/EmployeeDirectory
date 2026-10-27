@@ -3,7 +3,8 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneToggle
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
@@ -16,6 +17,8 @@ import { EmployeeService } from './services/EmployeeService';
 
 export interface IEmployeeDirectoryWebPartProps {
   title: string;
+  showFilters: boolean;
+  showSorting: boolean;
 }
 
 export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmployeeDirectoryWebPartProps> {
@@ -27,6 +30,8 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
       EmployeeDirectory,
       {
         title: this.properties.title,
+        showFilters: !!this.properties.showFilters,
+        showSorting: !!this.properties.showSorting,
         employeeService: this._employeeService
       }
     );
@@ -37,7 +42,6 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
   protected async onInit(): Promise<void> {
     await super.onInit();
 
-    // Create the PnPjs instance once, bound to this web part's SharePoint context.
     const sp = spfi().using(SPFx(this.context));
     this._employeeService = new EmployeeService(sp);
   }
@@ -81,6 +85,21 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
                 PropertyPaneTextField('title', {
                   label: strings.TitleFieldLabel,
                   description: strings.TitleFieldDescription
+                })
+              ]
+            },
+            {
+              groupName: strings.DisplayGroupName,
+              groupFields: [
+                PropertyPaneToggle('showFilters', {
+                  label: strings.ShowFiltersFieldLabel,
+                  onText: strings.ToggleOnText,
+                  offText: strings.ToggleOffText
+                }),
+                PropertyPaneToggle('showSorting', {
+                  label: strings.ShowSortingFieldLabel,
+                  onText: strings.ToggleOnText,
+                  offText: strings.ToggleOffText
                 })
               ]
             }

@@ -5,9 +5,22 @@ declare interface IEmployeeDirectoryWebPartStrings {
   TitleFieldDescription: string;
   DefaultTitle: string;
 
-  ActiveEmployeesLabel: string;
+  DisplayGroupName: string;
+  ShowFiltersFieldLabel: string;
+  ShowSortingFieldLabel: string;
+  ToggleOnText: string;
+  ToggleOffText: string;
+
+  EmployeeCountFormat: string;
   NoEmployeesMessage: string;
   LoadErrorMessage: string;
+
+  DepartmentFilterLabel: string;
+  AllDepartmentsOption: string;
+  StatusFilterLabel: string;
+  StatusActive: string;
+  StatusInactive: string;
+  StatusAll: string;
 
   ColumnEmpId: string;
   ColumnEmployee: string;
@@ -18,6 +31,7 @@ declare interface IEmployeeDirectoryWebPartStrings {
   ColumnDOJ: string;
   ColumnAge: string;
   ColumnJoinedYears: string;
+  ColumnStatus: string;
 }
 
 declare module 'EmployeeDirectoryWebPartStrings' {

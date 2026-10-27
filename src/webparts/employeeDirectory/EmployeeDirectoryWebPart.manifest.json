@@ -22,7 +22,9 @@
     "description": { "default": "View and manage employees" },
     "officeFabricIconFontName": "People",
     "properties": {
-      "title": "Employee Directory"
+      "title": "Employee Directory",
+      "showFilters": true,
+      "showSorting": true
     }
   }]
 }

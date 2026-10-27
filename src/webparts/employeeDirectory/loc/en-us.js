@@ -6,9 +6,22 @@ define([], function() {
     "TitleFieldDescription": "Heading displayed above the employee directory",
     "DefaultTitle": "Employee Directory",
 
-    "ActiveEmployeesLabel": "Active employees",
-    "NoEmployeesMessage": "No active employees found.",
+    "DisplayGroupName": "Display options",
+    "ShowFiltersFieldLabel": "Filters",
+    "ShowSortingFieldLabel": "Sorting (click column headers)",
+    "ToggleOnText": "Show",
+    "ToggleOffText": "Hide",
+
+    "EmployeeCountFormat": "Showing {0} of {1} employees",
+    "NoEmployeesMessage": "No employees match the current filters.",
     "LoadErrorMessage": "Unable to load employees. Please refresh the page or contact your administrator.",
+
+    "DepartmentFilterLabel": "Department",
+    "AllDepartmentsOption": "All departments",
+    "StatusFilterLabel": "Status",
+    "StatusActive": "Active",
+    "StatusInactive": "Inactive",
+    "StatusAll": "All",
 
     "ColumnEmpId": "Employee ID",
     "ColumnEmployee": "Employee",
@@ -18,6 +31,7 @@ define([], function() {
     "ColumnDOB": "DOB",
     "ColumnDOJ": "DOJ",
     "ColumnAge": "Age",
-    "ColumnJoinedYears": "Joined Years"
+    "ColumnJoinedYears": "Joined Years",
+    "ColumnStatus": "Status"
   }
 });

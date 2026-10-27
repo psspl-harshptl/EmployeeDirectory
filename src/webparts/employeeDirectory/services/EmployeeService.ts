@@ -2,6 +2,7 @@ import type { SPFI } from '@pnp/sp';
 import '@pnp/sp/webs';
 import '@pnp/sp/lists';
 import '@pnp/sp/items';
+import '@pnp/sp/fields';
 
 import { EMPLOYEE_FIELDS, LIST_TITLES } from '../constants/Constants';
 import type { IEmployee } from '../models/IEmployee';
@@ -63,6 +64,18 @@ export class EmployeeService {
       .top(5000)();
 
     return items.map((item) => this._mapEmployee(item));
+  }
+
+  /**
+   * Reads the options of the Department choice column, so they are never hard-coded.
+   */
+  public async getDepartmentChoices(): Promise<string[]> {
+    const field = await this._sp.web.lists
+      .getByTitle(LIST_TITLES.Employee)
+      .fields.getByInternalNameOrTitle(EMPLOYEE_FIELDS.Department)
+      .select('Choices')();
+
+    return field.Choices ?? [];
   }
 
   private _mapEmployee(item: ISPEmployeeItem): IEmployee {
