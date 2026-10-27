@@ -74,6 +74,8 @@ declare interface IEmployeeDirectoryWebPartStrings {
   ActivatedMessage: string;
   DeactivatedMessage: string;
   StatusUpdateErrorMessage: string;
+  DuplicateUserError: string;
+  DuplicateEmpIdError: string;
 }
 
 declare module 'EmployeeDirectoryWebPartStrings' {

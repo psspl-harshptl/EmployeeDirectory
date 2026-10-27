@@ -9,6 +9,7 @@ import type { IEmployeeFormData } from '../models/IEmployeeFormData';
 import type { IEmployeeSort } from '../models/IEmployeeSort';
 import type { IPosition } from '../models/IPosition';
 import { filterEmployees, sortEmployees } from '../utils/employeeQueryUtils';
+import { EmployeeValidationError } from '../utils/employeeValidation';
 import { formatString } from '../utils/stringUtils';
 import styles from './EmployeeDirectory.module.scss';
 import EmployeeFilterBar from './EmployeeFilterBar/EmployeeFilterBar';
@@ -113,13 +114,32 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
 
   const handleSubmit = async (data: IEmployeeFormData): Promise<void> => {
     try {
+      // Friendly checks before saving; "Enforce unique values" on the EmpID and User columns is the server-side guarantee.
+      // Both run in parallel so the user sees every duplicate at once.
+      const [isEmpIdTaken, isUserTaken] = await Promise.all([
+        employeeService.isEmpIdAlreadyAdded(data.empId, editingEmployee?.id),
+        data.userId !== undefined
+          ? employeeService.isUserAlreadyAdded(data.userId, editingEmployee?.id)
+          : Promise.resolve(false)
+      ]);
+
+      if (isEmpIdTaken || isUserTaken) {
+        throw new EmployeeValidationError({
+          empId: isEmpIdTaken ? strings.DuplicateEmpIdError : undefined,
+          userId: isUserTaken ? strings.DuplicateUserError : undefined
+        });
+      }
+
       if (editingEmployee) {
         await employeeService.updateEmployee(editingEmployee.id, data);
       } else {
         await employeeService.addEmployee(data);
       }
     } catch (error) {
-      console.error('EmployeeDirectory: failed to save employee', error);
+      // A validation error is an expected outcome, not a failure worth logging.
+      if (!(error instanceof EmployeeValidationError)) {
+        console.error('EmployeeDirectory: failed to save employee', error);
+      }
       throw error;
     }
 

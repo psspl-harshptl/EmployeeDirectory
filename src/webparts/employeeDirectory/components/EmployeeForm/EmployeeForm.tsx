@@ -21,7 +21,7 @@ import { EMPTY_EMPLOYEE_FORM } from '../../constants/Constants';
 import type { IEmployee } from '../../models/IEmployee';
 import type { IEmployeeFormData } from '../../models/IEmployeeFormData';
 import { formatDate } from '../../utils/dateUtils';
-import { EmployeeFormErrors, validateEmployeeForm } from '../../utils/employeeValidation';
+import { EmployeeFormErrors, EmployeeValidationError, validateEmployeeForm } from '../../utils/employeeValidation';
 import type { IEmployeeFormProps } from './IEmployeeFormProps';
 
 
@@ -119,8 +119,12 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
     try {
       await onSubmit(formData);
       resetForm();
-    } catch {
-      setSaveError(strings.SaveErrorMessage);
+    } catch (error) {
+      if (error instanceof EmployeeValidationError) {
+        setErrors(error.errors);
+      } else {
+        setSaveError(strings.SaveErrorMessage);
+      }
     } finally {
       setIsSaving(false);
     }

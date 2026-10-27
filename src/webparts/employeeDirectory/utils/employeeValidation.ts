@@ -56,3 +56,19 @@ export function validateEmployeeForm(data: IEmployeeFormData, today: Date = new 
 
   return errors;
 }
+
+/**
+ * Thrown when a check that needs SharePoint (e.g. duplicate user) fails, so the form can show
+ * the message under the related field instead of a generic save error.
+ */
+export class EmployeeValidationError extends Error {
+  public readonly errors: EmployeeFormErrors;
+
+  constructor(errors: EmployeeFormErrors) {
+    super('Employee form validation failed');
+    this.name = 'EmployeeValidationError';
+    this.errors = errors;
+    // The project compiles to ES5, where extending Error breaks instanceof unless the prototype is restored.
+    Object.setPrototypeOf(this, EmployeeValidationError.prototype);
+  }
+}

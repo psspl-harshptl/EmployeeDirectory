@@ -74,6 +74,8 @@ define([], function() {
     "UpdatingButton": "Updating...",
     "ActivatedMessage": "{0} has been marked as active.",
     "DeactivatedMessage": "{0} has been marked as inactive.",
-    "StatusUpdateErrorMessage": "Unable to update the employee status. Please check your permissions and try again."
+    "StatusUpdateErrorMessage": "Unable to update the employee status. Please check your permissions and try again.",
+    "DuplicateUserError": "This user has already been added to the employee list.",
+    "DuplicateEmpIdError": "This Employee ID is already in use."
   }
 });
