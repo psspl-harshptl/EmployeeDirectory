@@ -4,15 +4,13 @@ import '@pnp/sp/lists';
 import '@pnp/sp/items';
 import '@pnp/sp/fields';
 
-import { EMPLOYEE_FIELDS, LIST_TITLES } from '../constants/Constants';
+import { EMPLOYEE_FIELDS, LIST_TITLES, POSITION_FIELDS } from '../constants/Constants';
 import type { IEmployee } from '../models/IEmployee';
-import { parseSPDate } from '../utils/dateUtils';
+import type { IEmployeeFormData } from '../models/IEmployeeFormData';
+import type { IPosition } from '../models/IPosition';
+import { parseSPDate, toSPDateValue } from '../utils/dateUtils';
 
-/**
- * Raw shape of an Employee list item as returned by SharePoint REST.
- * Property names are the column internal names (see EMPLOYEE_FIELDS).
- * SharePoint REST returns null for empty fields, so null is modelled explicitly here.
- */
+// SharePoint REST returns null for empty fields, so null is modelled explicitly here.
 /* eslint-disable @rushstack/no-new-null */
 interface ISPEmployeeItem {
   Id: number;
@@ -28,10 +26,6 @@ interface ISPEmployeeItem {
 }
 /* eslint-enable @rushstack/no-new-null */
 
-/**
- * All SharePoint data access for the Employee Directory.
- * Components never call PnPjs directly; they go through this service.
- */
 export class EmployeeService {
   private readonly _sp: SPFI;
 
@@ -66,9 +60,7 @@ export class EmployeeService {
     return items.map((item) => this._mapEmployee(item));
   }
 
-  /**
-   * Reads the options of the Department choice column, so they are never hard-coded.
-   */
+
   public async getDepartmentChoices(): Promise<string[]> {
     const field = await this._sp.web.lists
       .getByTitle(LIST_TITLES.Employee)
@@ -76,6 +68,42 @@ export class EmployeeService {
       .select('Choices')();
 
     return field.Choices ?? [];
+  }
+
+  public async getPositions(): Promise<IPosition[]> {
+    const items: { Id: number; Title: string }[] = await this._sp.web.lists
+      .getByTitle(LIST_TITLES.Positions)
+      .items.select(POSITION_FIELDS.Id, POSITION_FIELDS.Title)
+      .orderBy(POSITION_FIELDS.Title, true)
+      .top(5000)();
+
+    return items.map((item) => ({ id: item.Id, title: item.Title }));
+  }
+
+  public async addEmployee(data: IEmployeeFormData): Promise<void> {
+    await this._sp.web.lists
+      .getByTitle(LIST_TITLES.Employee)
+      .items.add(this._mapToListItem(data));
+  }
+
+  /**
+   * Converts form data into the payload SharePoint expects.
+   * People and Lookup columns are written through their "<InternalName>Id" property.
+   */
+  private _mapToListItem(data: IEmployeeFormData): Record<string, unknown> {
+    const f = EMPLOYEE_FIELDS;
+
+    return {
+      [f.EmpId]: data.empId.trim(),
+      [`${f.User}Id`]: data.userId,
+      [f.Department]: data.department,
+      [`${f.Designation}Id`]: data.designationId,
+      [f.MobileNo]: Number(data.mobileNo),
+      [f.Address]: data.address.trim(),
+      [f.DOB]: toSPDateValue(data.dob),
+      [f.DOJ]: toSPDateValue(data.doj),
+      [f.IsActive]: data.isActive
+    };
   }
 
   private _mapEmployee(item: ISPEmployeeItem): IEmployee {

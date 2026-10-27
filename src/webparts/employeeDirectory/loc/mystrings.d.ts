@@ -32,6 +32,31 @@ declare interface IEmployeeDirectoryWebPartStrings {
   ColumnAge: string;
   ColumnJoinedYears: string;
   ColumnStatus: string;
+
+  NewEmployeeButton: string;
+  NewEmployeeFormTitle: string;
+  FieldEmpId: string;
+  FieldUser: string;
+  FieldDepartment: string;
+  FieldDesignation: string;
+  FieldMobileNo: string;
+  FieldAddress: string;
+  FieldDOB: string;
+  FieldDOJ: string;
+  FieldIsActive: string;
+  SelectPlaceholder: string;
+  DatePlaceholder: string;
+  SubmitButton: string;
+  SavingButton: string;
+  CancelButton: string;
+
+  RequiredFieldError: string;
+  InvalidMobileNoError: string;
+  FutureDateError: string;
+  DojBeforeDobError: string;
+  SaveSuccessMessage: string;
+  SaveErrorMessage: string;
+  LoadFormDataErrorMessage: string;
 }
 
 declare module 'EmployeeDirectoryWebPartStrings' {

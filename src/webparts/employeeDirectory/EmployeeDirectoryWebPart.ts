@@ -9,6 +9,7 @@ import {
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
 import { spfi, SPFx } from '@pnp/sp';
+import type { IPeoplePickerContext } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 
 import * as strings from 'EmployeeDirectoryWebPartStrings';
 import EmployeeDirectory from './components/EmployeeDirectory';
@@ -24,6 +25,7 @@ export interface IEmployeeDirectoryWebPartProps {
 export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmployeeDirectoryWebPartProps> {
 
   private _employeeService!: EmployeeService;
+  private _peoplePickerContext!: IPeoplePickerContext;
 
   public render(): void {
     const element: React.ReactElement<IEmployeeDirectoryProps> = React.createElement(
@@ -32,7 +34,8 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
         title: this.properties.title,
         showFilters: !!this.properties.showFilters,
         showSorting: !!this.properties.showSorting,
-        employeeService: this._employeeService
+        employeeService: this._employeeService,
+        peoplePickerContext: this._peoplePickerContext
       }
     );
 
@@ -44,6 +47,16 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
 
     const sp = spfi().using(SPFx(this.context));
     this._employeeService = new EmployeeService(sp);
+
+    // The PnP people picker only needs these three members, not the whole web part context.
+    // @pnp/spfx-controls-react ships its own nested copy of the SPFx 1.23.0 typings, which TypeScript treats as
+    // different classes from this project's 1.23.2 ones. At runtime SharePoint provides a single shared instance
+    // (SPFx libraries are externals), so the casts below only bridge the duplicate type declarations.
+    this._peoplePickerContext = {
+      absoluteUrl: this.context.pageContext.web.absoluteUrl,
+      msGraphClientFactory: this.context.msGraphClientFactory as unknown as IPeoplePickerContext['msGraphClientFactory'],
+      spHttpClient: this.context.spHttpClient as unknown as IPeoplePickerContext['spHttpClient']
+    };
   }
 
   protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {

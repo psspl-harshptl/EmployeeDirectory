@@ -14,13 +14,12 @@ import type { EmployeeSortField } from '../../models/IEmployeeSort';
 import { formatDate, getCompletedYears } from '../../utils/dateUtils';
 import type { IEmployeeListProps } from './IEmployeeListProps';
 
-// While shimmering, the list renders placeholder rows that are null, so fall back to the row index.
+
 const getEmployeeKey = (item: IEmployee | undefined, index?: number): string =>
   item ? String(item.id) : `placeholder-${index}`;
 
 const EmployeeList: React.FC<IEmployeeListProps> = ({ employees, isLoading, sort, onSortChange }) => {
   const columns: IColumn[] = React.useMemo(() => {
-    // Header click sorts by the column; clicking the sorted column again flips the direction.
     const sortableProps = (field: EmployeeSortField): Partial<IColumn> =>
       onSortChange
         ? {

@@ -1,14 +1,17 @@
 import * as React from 'react';
-import { MessageBar, MessageBarType, Stack, Text } from '@fluentui/react';
+import { MessageBar, MessageBarType, PrimaryButton, Stack, Text } from '@fluentui/react';
 
 import * as strings from 'EmployeeDirectoryWebPartStrings';
 import { DEFAULT_FILTERS, DEFAULT_SORT } from '../constants/Constants';
 import type { IEmployee } from '../models/IEmployee';
 import type { IEmployeeFilters } from '../models/IEmployeeFilters';
+import type { IEmployeeFormData } from '../models/IEmployeeFormData';
 import type { IEmployeeSort } from '../models/IEmployeeSort';
+import type { IPosition } from '../models/IPosition';
 import { filterEmployees, sortEmployees } from '../utils/employeeQueryUtils';
 import styles from './EmployeeDirectory.module.scss';
 import EmployeeFilterBar from './EmployeeFilterBar/EmployeeFilterBar';
+import EmployeeForm from './EmployeeForm/EmployeeForm';
 import EmployeeList from './EmployeeList/EmployeeList';
 import type { IEmployeeDirectoryProps } from './IEmployeeDirectoryProps';
 
@@ -16,12 +19,17 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   title,
   showFilters,
   showSorting,
-  employeeService
+  employeeService,
+  peoplePickerContext
 }) => {
   const [employees, setEmployees] = React.useState<IEmployee[]>([]);
   const [departmentChoices, setDepartmentChoices] = React.useState<string[]>([]);
+  const [positions, setPositions] = React.useState<IPosition[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
+  const [formOptionsError, setFormOptionsError] = React.useState<string | undefined>(undefined);
+  const [successMessage, setSuccessMessage] = React.useState<string | undefined>(undefined);
+  const [isFormOpen, setIsFormOpen] = React.useState<boolean>(false);
   const [filters, setFilters] = React.useState<IEmployeeFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = React.useState<IEmployeeSort>(DEFAULT_SORT);
 
@@ -58,19 +66,45 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
     loadEmployees().catch(() => undefined);
   }, [loadEmployees]);
 
-  // Department choices only need loading once; a failure here should not hide the employee list.
+
+  // Options for the filter bar and the form only need loading once.
+  // A failure here should not hide the employee list, so it shows a separate warning.
   React.useEffect(() => {
-    employeeService
-      .getDepartmentChoices()
-      .then((choices) => {
+    Promise.all([employeeService.getDepartmentChoices(), employeeService.getPositions()])
+      .then(([choices, positionItems]) => {
         if (isMountedRef.current) {
           setDepartmentChoices(choices);
+          setPositions(positionItems);
         }
       })
-      .catch((error) => console.error('EmployeeDirectory: failed to load department choices', error));
+      .catch((error) => {
+        console.error('EmployeeDirectory: failed to load form options', error);
+        if (isMountedRef.current) {
+          setFormOptionsError(strings.LoadFormDataErrorMessage);
+        }
+      });
   }, [employeeService]);
 
-  // Hidden filters/sorting must not keep affecting the list, so fall back to the defaults.
+  const openNewEmployeeForm = (): void => {
+    setSuccessMessage(undefined);
+    setIsFormOpen(true);
+  };
+
+  // Errors are re-thrown so the form keeps the user's input and shows its own error message.
+  const handleSubmit = async (data: IEmployeeFormData): Promise<void> => {
+    try {
+      await employeeService.addEmployee(data);
+    } catch (error) {
+      console.error('EmployeeDirectory: failed to save employee', error);
+      throw error;
+    }
+
+    setIsFormOpen(false);
+    setSuccessMessage(strings.SaveSuccessMessage);
+    await loadEmployees();
+  };
+
+
   const effectiveFilters = showFilters ? filters : DEFAULT_FILTERS;
   const effectiveSort = showSorting ? sort : DEFAULT_SORT;
 
@@ -82,9 +116,28 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   return (
     <section className={styles.employeeDirectory}>
       <Stack tokens={{ childrenGap: 16 }}>
-        <Text variant="xLarge" as="h2">
-          {title || strings.DefaultTitle}
-        </Text>
+        <Stack horizontal wrap horizontalAlign="space-between" verticalAlign="center" tokens={{ childrenGap: 8 }}>
+          <Text variant="xLarge" as="h2">
+            {title || strings.DefaultTitle}
+          </Text>
+          <PrimaryButton
+            text={strings.NewEmployeeButton}
+            iconProps={{ iconName: 'AddFriend' }}
+            onClick={openNewEmployeeForm}
+          />
+        </Stack>
+
+        {successMessage && (
+          <MessageBar messageBarType={MessageBarType.success} onDismiss={() => setSuccessMessage(undefined)}>
+            {successMessage}
+          </MessageBar>
+        )}
+
+        {formOptionsError && (
+          <MessageBar messageBarType={MessageBarType.warning} onDismiss={() => setFormOptionsError(undefined)}>
+            {formOptionsError}
+          </MessageBar>
+        )}
 
         {errorMessage && (
           <MessageBar messageBarType={MessageBarType.error} isMultiline>
@@ -123,6 +176,15 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
           </>
         )}
       </Stack>
+
+      <EmployeeForm
+        isOpen={isFormOpen}
+        departmentChoices={departmentChoices}
+        positions={positions}
+        peoplePickerContext={peoplePickerContext}
+        onSubmit={handleSubmit}
+        onDismiss={() => setIsFormOpen(false)}
+      />
     </section>
   );
 };

@@ -35,6 +35,27 @@ export function getCompletedYears(from: Date | undefined, to: Date = new Date())
 }
 
 /**
+ * Converts a picked date into the value written to a SharePoint "Date Only" column.
+ * The time is reset to local midnight before converting to UTC. This mirrors how SharePoint's
+ * own forms store dates and how parseSPDate reads them back, so a date round-trips unchanged
+ * as long as the browser and the site regional settings use the same time zone.
+ */
+export function toSPDateValue(date: Date | undefined): string | undefined {
+  if (!date) {
+    return undefined;
+  }
+
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
+}
+
+/**
+ * Returns the date with the time removed, for day-level comparisons.
+ */
+export function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/**
  * Formats a date as e.g. "15 Mar 1995" using the browser locale.
  */
 export function formatDate(date: Date | undefined): string {

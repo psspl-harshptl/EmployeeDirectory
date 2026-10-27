@@ -32,6 +32,31 @@ define([], function() {
     "ColumnDOJ": "DOJ",
     "ColumnAge": "Age",
     "ColumnJoinedYears": "Joined Years",
-    "ColumnStatus": "Status"
+    "ColumnStatus": "Status",
+
+    "NewEmployeeButton": "New Employee",
+    "NewEmployeeFormTitle": "New Employee",
+    "FieldEmpId": "Employee ID",
+    "FieldUser": "User",
+    "FieldDepartment": "Department",
+    "FieldDesignation": "Designation",
+    "FieldMobileNo": "Mobile Number",
+    "FieldAddress": "Address",
+    "FieldDOB": "Date of Birth",
+    "FieldDOJ": "Date of Joining",
+    "FieldIsActive": "Active",
+    "SelectPlaceholder": "Select an option",
+    "DatePlaceholder": "Select a date...",
+    "SubmitButton": "Submit",
+    "SavingButton": "Saving...",
+    "CancelButton": "Cancel",
+
+    "RequiredFieldError": "This field is required.",
+    "InvalidMobileNoError": "Enter a valid 10-digit mobile number.",
+    "FutureDateError": "Date cannot be in the future.",
+    "DojBeforeDobError": "Date of joining must be after date of birth.",
+    "SaveSuccessMessage": "Employee saved successfully.",
+    "SaveErrorMessage": "Unable to save the employee. Please check your permissions and try again.",
+    "LoadFormDataErrorMessage": "Unable to load form options (departments or designations). Some dropdowns may be empty."
   }
 });
