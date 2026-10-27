@@ -7,10 +7,12 @@ import {
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
+import { spfi, SPFx } from '@pnp/sp';
 
 import * as strings from 'EmployeeDirectoryWebPartStrings';
 import EmployeeDirectory from './components/EmployeeDirectory';
 import { IEmployeeDirectoryProps } from './components/IEmployeeDirectoryProps';
+import { EmployeeService } from './services/EmployeeService';
 
 export interface IEmployeeDirectoryWebPartProps {
   title: string;
@@ -18,11 +20,14 @@ export interface IEmployeeDirectoryWebPartProps {
 
 export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmployeeDirectoryWebPartProps> {
 
+  private _employeeService!: EmployeeService;
+
   public render(): void {
     const element: React.ReactElement<IEmployeeDirectoryProps> = React.createElement(
       EmployeeDirectory,
       {
-        title: this.properties.title
+        title: this.properties.title,
+        employeeService: this._employeeService
       }
     );
 
@@ -31,6 +36,10 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
 
   protected async onInit(): Promise<void> {
     await super.onInit();
+
+    // Create the PnPjs instance once, bound to this web part's SharePoint context.
+    const sp = spfi().using(SPFx(this.context));
+    this._employeeService = new EmployeeService(sp);
   }
 
   protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {

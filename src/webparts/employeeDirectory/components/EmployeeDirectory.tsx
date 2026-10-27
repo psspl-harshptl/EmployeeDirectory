@@ -1,99 +1,86 @@
 import * as React from 'react';
-import {
-  DefaultButton,
-  PrimaryButton,
-  Stack,
-  Text,
-  SearchBox,
-  DetailsList,
-  DetailsListLayoutMode,
-  SelectionMode,
-  IColumn
-} from '@fluentui/react';
+import { MessageBar, MessageBarType, Stack, Text } from '@fluentui/react';
 
 import * as strings from 'EmployeeDirectoryWebPartStrings';
+import type { IEmployee } from '../models/IEmployee';
+import styles from './EmployeeDirectory.module.scss';
+import EmployeeList from './EmployeeList/EmployeeList';
 import type { IEmployeeDirectoryProps } from './IEmployeeDirectoryProps';
 
-interface IEmployee {
-  id: string;
-  name: string;
-  department: string;
-  designation: string;
-  mobile: string;
-  isActive: boolean;
-}
+const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({ title, employeeService }) => {
+  const [employees, setEmployees] = React.useState<IEmployee[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
 
-const sampleEmployees: IEmployee[] = [
-  {
-    id: 'EMP001',
-    name: 'Aarav Patel',
-    department: 'IT',
-    designation: 'UI Developer',
-    mobile: '9876543210',
-    isActive: true
-  },
-  {
-    id: 'EMP002',
-    name: 'Diya Shah',
-    department: 'HR',
-    designation: 'HR Executive',
-    mobile: '9876543211',
-    isActive: true
-  },
-  {
-    id: 'EMP003',
-    name: 'Krish Mehta',
-    department: 'Marketing',
-    designation: 'Marketing Executive',
-    mobile: '9876543212',
-    isActive: false
-  }
-];
+  // Prevents state updates if the web part is removed while a request is still running.
+  const isMountedRef = React.useRef<boolean>(true);
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-export default class EmployeeDirectory extends React.Component<IEmployeeDirectoryProps> {
-  private readonly _columns: IColumn[] = [
-    { key: 'id', name: 'Employee ID', fieldName: 'id', minWidth: 90 },
-    { key: 'name', name: 'Employee', fieldName: 'name', minWidth: 120 },
-    { key: 'department', name: 'Department', fieldName: 'department', minWidth: 100 },
-    { key: 'designation', name: 'Designation', fieldName: 'designation', minWidth: 120 },
-    { key: 'mobile', name: 'Mobile Number', fieldName: 'mobile', minWidth: 110 }
-  ];
+  const loadEmployees = React.useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    setErrorMessage(undefined);
 
-  public render(): React.ReactElement<IEmployeeDirectoryProps> {
-    const activeEmployees = sampleEmployees.filter(employee => employee.isActive);
+    try {
+      const result = await employeeService.getEmployees();
+      if (isMountedRef.current) {
+        setEmployees(result);
+      }
+    } catch (error) {
+      console.error('EmployeeDirectory: failed to load employees', error);
+      if (isMountedRef.current) {
+        setErrorMessage(strings.LoadErrorMessage);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [employeeService]);
 
-    return (
+  React.useEffect(() => {
+    loadEmployees().catch(() => undefined);
+  }, [loadEmployees]);
+
+  const activeEmployees = React.useMemo(
+    () => employees.filter((employee) => employee.isActive),
+    [employees]
+  );
+
+  return (
+    <section className={styles.employeeDirectory}>
       <Stack tokens={{ childrenGap: 16 }}>
-        <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <Text variant="xLarge" as="h2">
-            {this.props.title || strings.DefaultTitle}
-          </Text>
+        <Text variant="xLarge" as="h2">
+          {title || strings.DefaultTitle}
+        </Text>
 
-          <PrimaryButton
-            text="New Employee"
-            iconProps={{ iconName: 'Add' }}
-            onClick={() => alert('Employee form will be implemented next.')}
-          />
-        </Stack>
+        {errorMessage && (
+          <MessageBar messageBarType={MessageBarType.error} isMultiline>
+            {errorMessage}
+          </MessageBar>
+        )}
 
-        <SearchBox
-          placeholder="Search employees..."
-          ariaLabel="Search employees"
-        />
+        {!errorMessage && (
+          <>
+            {!isLoading && (
+              <Text variant="medium">
+                {strings.ActiveEmployeesLabel}: {activeEmployees.length}
+              </Text>
+            )}
 
-        <Stack horizontal tokens={{ childrenGap: 8 }}>
-          <DefaultButton text="Filters" iconProps={{ iconName: 'Filter' }} />
-          <DefaultButton text="Sort" iconProps={{ iconName: 'Sort' }} />
-          <Text variant="medium">Active employees: {activeEmployees.length}</Text>
-        </Stack>
+            <EmployeeList employees={activeEmployees} isLoading={isLoading} />
 
-        <DetailsList
-          items={activeEmployees}
-          columns={this._columns}
-          selectionMode={SelectionMode.none}
-          layoutMode={DetailsListLayoutMode.justified}
-        />
+            {!isLoading && activeEmployees.length === 0 && (
+              <MessageBar>{strings.NoEmployeesMessage}</MessageBar>
+            )}
+          </>
+        )}
       </Stack>
-    );
-  }
-}
+    </section>
+  );
+};
+
+export default EmployeeDirectory;
