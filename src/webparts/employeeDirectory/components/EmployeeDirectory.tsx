@@ -9,11 +9,18 @@ import type { IEmployeeFormData } from '../models/IEmployeeFormData';
 import type { IEmployeeSort } from '../models/IEmployeeSort';
 import type { IPosition } from '../models/IPosition';
 import { filterEmployees, sortEmployees } from '../utils/employeeQueryUtils';
+import { formatString } from '../utils/stringUtils';
 import styles from './EmployeeDirectory.module.scss';
 import EmployeeFilterBar from './EmployeeFilterBar/EmployeeFilterBar';
 import EmployeeForm from './EmployeeForm/EmployeeForm';
 import EmployeeList from './EmployeeList/EmployeeList';
 import type { IEmployeeDirectoryProps } from './IEmployeeDirectoryProps';
+import StatusConfirmDialog from './StatusConfirmDialog/StatusConfirmDialog';
+
+interface INotification {
+  type: MessageBarType;
+  text: string;
+}
 
 const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   title,
@@ -28,8 +35,11 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
   const [formOptionsError, setFormOptionsError] = React.useState<string | undefined>(undefined);
-  const [successMessage, setSuccessMessage] = React.useState<string | undefined>(undefined);
+  const [notification, setNotification] = React.useState<INotification | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = React.useState<boolean>(false);
+  const [editingEmployee, setEditingEmployee] = React.useState<IEmployee | undefined>(undefined);
+  const [statusChangeEmployee, setStatusChangeEmployee] = React.useState<IEmployee | undefined>(undefined);
+  const [isUpdatingStatus, setIsUpdatingStatus] = React.useState<boolean>(false);
   const [filters, setFilters] = React.useState<IEmployeeFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = React.useState<IEmployeeSort>(DEFAULT_SORT);
 
@@ -67,8 +77,6 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   }, [loadEmployees]);
 
 
-  // Options for the filter bar and the form only need loading once.
-  // A failure here should not hide the employee list, so it shows a separate warning.
   React.useEffect(() => {
     Promise.all([employeeService.getDepartmentChoices(), employeeService.getPositions()])
       .then(([choices, positionItems]) => {
@@ -86,22 +94,76 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   }, [employeeService]);
 
   const openNewEmployeeForm = (): void => {
-    setSuccessMessage(undefined);
+    setNotification(undefined);
+    setEditingEmployee(undefined);
     setIsFormOpen(true);
   };
 
-  // Errors are re-thrown so the form keeps the user's input and shows its own error message.
+  // useCallback keeps these stable, so the grid's memoized columns are not rebuilt on every render.
+  const handleEdit = React.useCallback((employee: IEmployee): void => {
+    setNotification(undefined);
+    setEditingEmployee(employee);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleToggleActive = React.useCallback((employee: IEmployee): void => {
+    setNotification(undefined);
+    setStatusChangeEmployee(employee);
+  }, []);
+
   const handleSubmit = async (data: IEmployeeFormData): Promise<void> => {
     try {
-      await employeeService.addEmployee(data);
+      if (editingEmployee) {
+        await employeeService.updateEmployee(editingEmployee.id, data);
+      } else {
+        await employeeService.addEmployee(data);
+      }
     } catch (error) {
       console.error('EmployeeDirectory: failed to save employee', error);
       throw error;
     }
 
     setIsFormOpen(false);
-    setSuccessMessage(strings.SaveSuccessMessage);
+    setNotification({
+      type: MessageBarType.success,
+      text: editingEmployee ? strings.UpdateSuccessMessage : strings.SaveSuccessMessage
+    });
     await loadEmployees();
+  };
+
+  const confirmStatusChange = async (): Promise<void> => {
+    if (!statusChangeEmployee) {
+      return;
+    }
+
+    const employee = statusChangeEmployee;
+    const newIsActive = !employee.isActive;
+    const employeeName = employee.userTitle || employee.empId;
+
+    setIsUpdatingStatus(true);
+    try {
+      await employeeService.setEmployeeActive(employee.id, newIsActive);
+      if (isMountedRef.current) {
+        // Only one field changed, so update the row locally instead of reloading the whole list.
+        setEmployees((previous) =>
+          previous.map((item) => (item.id === employee.id ? { ...item, isActive: newIsActive } : item))
+        );
+        setNotification({
+          type: MessageBarType.success,
+          text: formatString(newIsActive ? strings.ActivatedMessage : strings.DeactivatedMessage, employeeName)
+        });
+      }
+    } catch (error) {
+      console.error('EmployeeDirectory: failed to update employee status', error);
+      if (isMountedRef.current) {
+        setNotification({ type: MessageBarType.error, text: strings.StatusUpdateErrorMessage });
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsUpdatingStatus(false);
+        setStatusChangeEmployee(undefined);
+      }
+    }
   };
 
 
@@ -127,9 +189,13 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
           />
         </Stack>
 
-        {successMessage && (
-          <MessageBar messageBarType={MessageBarType.success} onDismiss={() => setSuccessMessage(undefined)}>
-            {successMessage}
+        {notification && (
+          <MessageBar
+            messageBarType={notification.type}
+            isMultiline
+            onDismiss={() => setNotification(undefined)}
+          >
+            {notification.text}
           </MessageBar>
         )}
 
@@ -157,9 +223,7 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
 
             {!isLoading && (
               <Text variant="medium">
-                {strings.EmployeeCountFormat
-                  .replace('{0}', String(visibleEmployees.length))
-                  .replace('{1}', String(employees.length))}
+                {formatString(strings.EmployeeCountFormat, visibleEmployees.length, employees.length)}
               </Text>
             )}
 
@@ -168,6 +232,8 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
               isLoading={isLoading}
               sort={effectiveSort}
               onSortChange={showSorting ? setSort : undefined}
+              onEdit={handleEdit}
+              onToggleActive={handleToggleActive}
             />
 
             {!isLoading && visibleEmployees.length === 0 && (
@@ -179,11 +245,21 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
 
       <EmployeeForm
         isOpen={isFormOpen}
+        employee={editingEmployee}
         departmentChoices={departmentChoices}
         positions={positions}
         peoplePickerContext={peoplePickerContext}
         onSubmit={handleSubmit}
         onDismiss={() => setIsFormOpen(false)}
+      />
+
+      <StatusConfirmDialog
+        employee={statusChangeEmployee}
+        isUpdating={isUpdatingStatus}
+        onConfirm={() => {
+          confirmStatusChange().catch(() => undefined);
+        }}
+        onCancel={() => setStatusChangeEmployee(undefined)}
       />
     </section>
   );

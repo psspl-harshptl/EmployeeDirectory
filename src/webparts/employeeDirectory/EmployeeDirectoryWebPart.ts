@@ -48,10 +48,6 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
     const sp = spfi().using(SPFx(this.context));
     this._employeeService = new EmployeeService(sp);
 
-    // The PnP people picker only needs these three members, not the whole web part context.
-    // @pnp/spfx-controls-react ships its own nested copy of the SPFx 1.23.0 typings, which TypeScript treats as
-    // different classes from this project's 1.23.2 ones. At runtime SharePoint provides a single shared instance
-    // (SPFx libraries are externals), so the casts below only bridge the duplicate type declarations.
     this._peoplePickerContext = {
       absoluteUrl: this.context.pageContext.web.absoluteUrl,
       msGraphClientFactory: this.context.msGraphClientFactory as unknown as IPeoplePickerContext['msGraphClientFactory'],

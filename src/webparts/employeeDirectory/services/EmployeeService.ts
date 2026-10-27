@@ -86,10 +86,20 @@ export class EmployeeService {
       .items.add(this._mapToListItem(data));
   }
 
-  /**
-   * Converts form data into the payload SharePoint expects.
-   * People and Lookup columns are written through their "<InternalName>Id" property.
-   */
+  public async updateEmployee(id: number, data: IEmployeeFormData): Promise<void> {
+    await this._sp.web.lists
+      .getByTitle(LIST_TITLES.Employee)
+      .items.getById(id)
+      .update(this._mapToListItem(data));
+  }
+
+  public async setEmployeeActive(id: number, isActive: boolean): Promise<void> {
+    await this._sp.web.lists
+      .getByTitle(LIST_TITLES.Employee)
+      .items.getById(id)
+      .update({ [EMPLOYEE_FIELDS.IsActive]: isActive });
+  }
+
   private _mapToListItem(data: IEmployeeFormData): Record<string, unknown> {
     const f = EMPLOYEE_FIELDS;
 

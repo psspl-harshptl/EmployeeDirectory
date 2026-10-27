@@ -57,6 +57,23 @@ define([], function() {
     "DojBeforeDobError": "Date of joining must be after date of birth.",
     "SaveSuccessMessage": "Employee saved successfully.",
     "SaveErrorMessage": "Unable to save the employee. Please check your permissions and try again.",
-    "LoadFormDataErrorMessage": "Unable to load form options (departments or designations). Some dropdowns may be empty."
+    "LoadFormDataErrorMessage": "Unable to load form options (departments or designations). Some dropdowns may be empty.",
+
+    "EditEmployeeFormTitle": "Edit Employee",
+    "UpdateButton": "Update",
+    "UpdateSuccessMessage": "Employee updated successfully.",
+    "ColumnActions": "Actions",
+    "EditButtonLabel": "Edit employee",
+    "ActivateButtonLabel": "Mark as active",
+    "DeactivateButtonLabel": "Mark as inactive",
+    "ConfirmActivateTitle": "Mark employee as active?",
+    "ConfirmDeactivateTitle": "Mark employee as inactive?",
+    "ConfirmActivateMessage": "{0} will be marked as active and shown in the directory again.",
+    "ConfirmDeactivateMessage": "{0} will be marked as inactive and hidden from the default (active) view.",
+    "ConfirmButton": "Confirm",
+    "UpdatingButton": "Updating...",
+    "ActivatedMessage": "{0} has been marked as active.",
+    "DeactivatedMessage": "{0} has been marked as inactive.",
+    "StatusUpdateErrorMessage": "Unable to update the employee status. Please check your permissions and try again."
   }
 });

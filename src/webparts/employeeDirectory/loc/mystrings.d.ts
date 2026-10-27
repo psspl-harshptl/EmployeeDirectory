@@ -57,6 +57,23 @@ declare interface IEmployeeDirectoryWebPartStrings {
   SaveSuccessMessage: string;
   SaveErrorMessage: string;
   LoadFormDataErrorMessage: string;
+
+  EditEmployeeFormTitle: string;
+  UpdateButton: string;
+  UpdateSuccessMessage: string;
+  ColumnActions: string;
+  EditButtonLabel: string;
+  ActivateButtonLabel: string;
+  DeactivateButtonLabel: string;
+  ConfirmActivateTitle: string;
+  ConfirmDeactivateTitle: string;
+  ConfirmActivateMessage: string;
+  ConfirmDeactivateMessage: string;
+  ConfirmButton: string;
+  UpdatingButton: string;
+  ActivatedMessage: string;
+  DeactivatedMessage: string;
+  StatusUpdateErrorMessage: string;
 }
 
 declare module 'EmployeeDirectoryWebPartStrings' {

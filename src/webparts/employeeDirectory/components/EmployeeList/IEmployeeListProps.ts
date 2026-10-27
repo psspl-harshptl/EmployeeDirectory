@@ -7,4 +7,6 @@ export interface IEmployeeListProps {
   sort: IEmployeeSort;
   /** When undefined, column headers are not clickable (sorting hidden from the property pane) */
   onSortChange?: (sort: IEmployeeSort) => void;
+  onEdit: (employee: IEmployee) => void;
+  onToggleActive: (employee: IEmployee) => void;
 }

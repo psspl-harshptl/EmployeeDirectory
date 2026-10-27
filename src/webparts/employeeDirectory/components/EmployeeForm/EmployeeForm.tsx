@@ -18,21 +18,36 @@ import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/People
 
 import * as strings from 'EmployeeDirectoryWebPartStrings';
 import { EMPTY_EMPLOYEE_FORM } from '../../constants/Constants';
+import type { IEmployee } from '../../models/IEmployee';
 import type { IEmployeeFormData } from '../../models/IEmployeeFormData';
 import { formatDate } from '../../utils/dateUtils';
 import { EmployeeFormErrors, validateEmployeeForm } from '../../utils/employeeValidation';
 import type { IEmployeeFormProps } from './IEmployeeFormProps';
 
-/**
- * With ensureUser enabled, the people picker returns the site user Id as a string.
- */
+
 function parseSiteUserId(person: IPersonaProps | undefined): number | undefined {
   const id = Number(person?.id);
   return Number.isInteger(id) && id > 0 ? id : undefined;
 }
 
+function toFormData(employee: IEmployee): IEmployeeFormData {
+  return {
+    empId: employee.empId,
+    userId: employee.userId,
+    userEmail: employee.userEmail,
+    department: employee.department,
+    designationId: employee.designationId,
+    mobileNo: employee.mobileNo,
+    address: employee.address,
+    dob: employee.dob,
+    doj: employee.doj,
+    isActive: employee.isActive
+  };
+}
+
 const EmployeeForm: React.FC<IEmployeeFormProps> = ({
   isOpen,
+  employee,
   departmentChoices,
   positions,
   peoplePickerContext,
@@ -43,12 +58,23 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
   const [errors, setErrors] = React.useState<EmployeeFormErrors>({});
   const [isSaving, setIsSaving] = React.useState<boolean>(false);
   const [saveError, setSaveError] = React.useState<string | undefined>(undefined);
-  // The people picker re-resolves users whenever defaultSelectedUsers changes, so it gets its own value that
-  // only changes on reset (and later on edit), and a new key so a reset always starts from a clean instance.
   const [peoplePickerDefaultUsers, setPeoplePickerDefaultUsers] = React.useState<string[]>([]);
   const [peoplePickerKey, setPeoplePickerKey] = React.useState<number>(0);
 
   const today = React.useMemo(() => new Date(), []);
+  const isEditMode = employee !== undefined;
+
+  // Each time the panel opens, start from the selected employee (edit) or an empty form (new).
+  React.useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    setFormData(employee ? toFormData(employee) : EMPTY_EMPLOYEE_FORM);
+    setErrors({});
+    setSaveError(undefined);
+    setPeoplePickerDefaultUsers(employee?.userEmail ? [employee.userEmail] : []);
+    setPeoplePickerKey((key) => key + 1);
+  }, [isOpen, employee]);
 
   const departmentOptions: IDropdownOption[] = React.useMemo(
     () => departmentChoices.map((choice) => ({ key: choice, text: choice })),
@@ -103,7 +129,7 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
   const onRenderFooterContent = (): JSX.Element => (
     <Stack horizontal tokens={{ childrenGap: 8 }}>
       <PrimaryButton
-        text={isSaving ? strings.SavingButton : strings.SubmitButton}
+        text={isSaving ? strings.SavingButton : isEditMode ? strings.UpdateButton : strings.SubmitButton}
         disabled={isSaving}
         onClick={() => {
           handleSubmit().catch(() => undefined);
@@ -117,7 +143,7 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
     <Panel
       isOpen={isOpen}
       type={PanelType.medium}
-      headerText={strings.NewEmployeeFormTitle}
+      headerText={isEditMode ? strings.EditEmployeeFormTitle : strings.NewEmployeeFormTitle}
       closeButtonAriaLabel={strings.CancelButton}
       onDismiss={handleCancel}
       onRenderFooterContent={onRenderFooterContent}
@@ -168,7 +194,6 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
           required
           placeholder={strings.SelectPlaceholder}
           options={departmentOptions}
-          // null (not undefined) keeps the dropdown controlled, so a reset clears the selection
           selectedKey={formData.department || null}
           errorMessage={errors.department}
           disabled={isSaving}
@@ -217,7 +242,6 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
           maxDate={today}
           formatDate={formatDate}
           disabled={isSaving}
-          // textField props override DatePicker's built-in required message, so only our validation messages show
           textField={{ required: true, errorMessage: errors.dob }}
           onSelectDate={(date) => updateField('dob', date ?? undefined)}
         />

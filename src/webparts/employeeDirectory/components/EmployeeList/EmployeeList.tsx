@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   DetailsListLayoutMode,
   IColumn,
+  IconButton,
   Persona,
   PersonaSize,
   SelectionMode,
@@ -18,7 +19,14 @@ import type { IEmployeeListProps } from './IEmployeeListProps';
 const getEmployeeKey = (item: IEmployee | undefined, index?: number): string =>
   item ? String(item.id) : `placeholder-${index}`;
 
-const EmployeeList: React.FC<IEmployeeListProps> = ({ employees, isLoading, sort, onSortChange }) => {
+const EmployeeList: React.FC<IEmployeeListProps> = ({
+  employees,
+  isLoading,
+  sort,
+  onSortChange,
+  onEdit,
+  onToggleActive
+}) => {
   const columns: IColumn[] = React.useMemo(() => {
     const sortableProps = (field: EmployeeSortField): Partial<IColumn> =>
       onSortChange
@@ -31,6 +39,33 @@ const EmployeeList: React.FC<IEmployeeListProps> = ({ employees, isLoading, sort
         : {};
 
     return [
+      // First column, so the buttons stay visible when the grid scrolls horizontally on narrow pages.
+      {
+        key: 'actions',
+        name: strings.ColumnActions,
+        isIconOnly: true,
+        minWidth: 70,
+        maxWidth: 70,
+        onRender: (item: IEmployee) => {
+          const toggleLabel = item.isActive ? strings.DeactivateButtonLabel : strings.ActivateButtonLabel;
+          return (
+            <>
+              <IconButton
+                iconProps={{ iconName: 'Edit' }}
+                title={strings.EditButtonLabel}
+                ariaLabel={`${strings.EditButtonLabel} ${item.empId}`}
+                onClick={() => onEdit(item)}
+              />
+              <IconButton
+                iconProps={{ iconName: item.isActive ? 'UserRemove' : 'UserFollowed' }}
+                title={toggleLabel}
+                ariaLabel={`${toggleLabel} ${item.empId}`}
+                onClick={() => onToggleActive(item)}
+              />
+            </>
+          );
+        }
+      },
       {
         key: 'empId',
         name: strings.ColumnEmpId,
@@ -102,7 +137,7 @@ const EmployeeList: React.FC<IEmployeeListProps> = ({ employees, isLoading, sort
         onRender: (item: IEmployee) => (item.isActive ? strings.StatusActive : strings.StatusInactive)
       }
     ];
-  }, [sort, onSortChange]);
+  }, [sort, onSortChange, onEdit, onToggleActive]);
 
   return (
     <ShimmeredDetailsList
