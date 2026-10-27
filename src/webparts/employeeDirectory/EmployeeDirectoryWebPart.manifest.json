@@ -18,11 +18,11 @@
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Advanced
     "group": { "default": "Advanced" },
-    "title": { "default": "EmployeeDirectory" },
-    "description": { "default": "EmployeeDirectory description" },
-    "officeFabricIconFontName": "Page",
+    "title": { "default": "Employee Directory" },
+    "description": { "default": "View and manage employees" },
+    "officeFabricIconFontName": "People",
     "properties": {
-      "description": "EmployeeDirectory"
+      "title": "Employee Directory"
     }
   }]
 }

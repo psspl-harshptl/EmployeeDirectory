@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import {
   DefaultButton,
@@ -12,6 +11,7 @@ import {
   IColumn
 } from '@fluentui/react';
 
+import * as strings from 'EmployeeDirectoryWebPartStrings';
 import type { IEmployeeDirectoryProps } from './IEmployeeDirectoryProps';
 
 interface IEmployee {
@@ -66,7 +66,7 @@ export default class EmployeeDirectory extends React.Component<IEmployeeDirector
       <Stack tokens={{ childrenGap: 16 }}>
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <Text variant="xLarge" as="h2">
-            {this.props.title || 'Employee Directory'}
+            {this.props.title || strings.DefaultTitle}
           </Text>
 
           <PrimaryButton
