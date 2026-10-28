@@ -22,7 +22,7 @@ interface INotification {
   type: MessageBarType;
   text: string;
 }
-
+  
 const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
   title,
   showFilters,
@@ -100,7 +100,6 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
     setIsFormOpen(true);
   };
 
-  // useCallback keeps these stable, so the grid's memoized columns are not rebuilt on every render.
   const handleEdit = React.useCallback((employee: IEmployee): void => {
     setNotification(undefined);
     setEditingEmployee(employee);
@@ -114,8 +113,6 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
 
   const handleSubmit = async (data: IEmployeeFormData): Promise<void> => {
     try {
-      // Friendly checks before saving; "Enforce unique values" on the EmpID and User columns is the server-side guarantee.
-      // Both run in parallel so the user sees every duplicate at once.
       const [isEmpIdTaken, isUserTaken] = await Promise.all([
         employeeService.isEmpIdAlreadyAdded(data.empId, editingEmployee?.id),
         data.userId !== undefined
@@ -136,7 +133,6 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({
         await employeeService.addEmployee(data);
       }
     } catch (error) {
-      // A validation error is an expected outcome, not a failure worth logging.
       if (!(error instanceof EmployeeValidationError)) {
         console.error('EmployeeDirectory: failed to save employee', error);
       }

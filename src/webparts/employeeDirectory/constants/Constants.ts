@@ -7,8 +7,7 @@ export const LIST_TITLES = {
   Positions: 'Positions'
 } as const;
 
-// Internal names of the Employee list columns (verified from List Settings).
-// EmpID was created by renaming the OOTB Title column, so its internal name is still "Title".
+
 export const EMPLOYEE_FIELDS = {
   Id: 'Id',
   EmpId: 'Title',
@@ -40,8 +39,6 @@ export const EMPTY_EMPLOYEE_FORM: IEmployeeFormData = {
   isActive: true
 };
 
-// Also applied when filters/sorting are hidden from the property pane,
-// so the directory always falls back to showing active employees by Employee ID.
 export const DEFAULT_FILTERS: IEmployeeFilters = {
   department: '',
   status: 'active'

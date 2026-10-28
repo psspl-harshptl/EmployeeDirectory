@@ -72,6 +72,10 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
 
   }
 
+  protected get disableReactivePropertyChanges(): boolean {
+    return true;
+  }
+
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }

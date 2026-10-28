@@ -10,7 +10,7 @@ import type { IEmployeeFormData } from '../models/IEmployeeFormData';
 import type { IPosition } from '../models/IPosition';
 import { parseSPDate, toSPDateValue } from '../utils/dateUtils';
 
-// SharePoint REST returns null for empty fields, so null is modelled explicitly here.
+
 /* eslint-disable @rushstack/no-new-null */
 interface ISPEmployeeItem {
   Id: number;
@@ -93,27 +93,16 @@ export class EmployeeService {
       .update(this._mapToListItem(data));
   }
 
-  /**
-   * True when another Employee item already has this person in the User column.
-   * excludeItemId skips the item being edited, so saving an employee without changing the user is allowed.
-   */
   public async isUserAlreadyAdded(userId: number, excludeItemId?: number): Promise<boolean> {
     return this._existsOtherItem(`${EMPLOYEE_FIELDS.User}Id eq ${userId}`, excludeItemId);
   }
 
-  /**
-   * True when another Employee item already uses this Employee ID (comparison ignores case).
-   */
+
   public async isEmpIdAlreadyAdded(empId: string, excludeItemId?: number): Promise<boolean> {
-    // In OData string literals a single quote is escaped by doubling it, so "EMP'01" cannot break the filter.
     const escapedEmpId = empId.trim().replace(/'/g, "''");
     return this._existsOtherItem(`${EMPLOYEE_FIELDS.EmpId} eq '${escapedEmpId}'`, excludeItemId);
   }
 
-  /**
-   * Checks whether any Employee item matches the filter, optionally ignoring the item being edited.
-   * Only the Id of a single item is requested, which keeps the query as cheap as possible.
-   */
   private async _existsOtherItem(filter: string, excludeItemId?: number): Promise<boolean> {
     const conditions = [filter];
     if (excludeItemId !== undefined) {

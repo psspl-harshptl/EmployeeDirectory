@@ -39,7 +39,6 @@ const EmployeeList: React.FC<IEmployeeListProps> = ({
         : {};
 
     return [
-      // First column, so the buttons stay visible when the grid scrolls horizontally on narrow pages.
       {
         key: 'actions',
         name: strings.ColumnActions,

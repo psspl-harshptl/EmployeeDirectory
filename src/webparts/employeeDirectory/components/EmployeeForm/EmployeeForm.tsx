@@ -64,7 +64,7 @@ const EmployeeForm: React.FC<IEmployeeFormProps> = ({
   const today = React.useMemo(() => new Date(), []);
   const isEditMode = employee !== undefined;
 
-  // Each time the panel opens, start from the selected employee (edit) or an empty form (new).
+
   React.useEffect(() => {
     if (!isOpen) {
       return;
